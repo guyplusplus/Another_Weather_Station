@@ -319,14 +319,14 @@ const int pms7300SetPin = A1;
 const int WRITE_PIN_33V = 168; //5V is 255, 3.3V is 168
 const int ON_OFF_TIME_IN_SECONDS = 60; //switch on and off switch
 SoftwareSerial pmsSerial(2, 3);
-bool isPms7300Up = false;
+bool isPms7300Up = true;
 
 void setup_PMS7003() {
   #ifdef SERIAL_DEBUG
     Serial.println("PMS7003 serial on");
   #endif
-  pinMode(pms7300SetPin, OUTPUT);
   setFanOnOff();
+  pinMode(pms7300SetPin, OUTPUT);
   pmsSerial.begin(9600);
 }
 
@@ -352,6 +352,7 @@ void setFanOnOff() {
     analogWrite(pms7300SetPin, 0);  
 }
 
+/*
 void setFanOnOffBasedOnTime() {
   int minutes = millis() / 1000 / ON_OFF_TIME_IN_SECONDS;
   bool isPms7300ShouldBeUp = ((minutes % 2) == 1);
@@ -360,6 +361,7 @@ void setFanOnOffBasedOnTime() {
     setFanOnOff();
   }
 }
+*/
 
 void one_loop_PMS7003() {
   if (readPMSdata(&pmsSerial)) {
@@ -398,7 +400,6 @@ void one_loop_PMS7003() {
     screens_print(sTitle, 0, 6);
     screens_print(sStats, 0, 7);
   }
-  setFanOnOffBasedOnTime();
   empty_buffer_PMS7003();
 }
 
