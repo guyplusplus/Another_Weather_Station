@@ -44,27 +44,13 @@ void setup_OLED_I2C() {
   #endif
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  /*uint8_t     *buffer;
-  buffer = (uint8_t *)malloc(SCREEN_WIDTH * ((SCREEN_HEIGHT + 7) / 8));
-  if(buffer) {
-    Serial.println(F("BUFFER SUCCESS"));
-    free(buffer);
-  }
-  else
-    Serial.println(F("BUFFER FAILED"));*/
-  
   if(!oled.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) { // Address 0x3C for 128x32
     Serial.println(F("SSD1306 failed"));
     while(true);
   }
 
-  // Show initial display buffer contents on the screen --
-  // the library initializes this with an Adafruit splash screen.
-  //oled.display();
-  //delay(2000); // Pause for 2 seconds to show adafruit logo
-
   // Clear the buffer
-  //oled.clearDisplay();
+  oled.clearDisplay();
 
   //oled.setTextSize(1);      // Normal 1:1 pixel scale
   oled.setTextColor(WHITE); // Draw white text
