@@ -6,45 +6,19 @@
 //  0123456789012345678901234567890123456789
 // 0T(C): 32.5  Hum(%): 77  Pr(Pa): 1024
 // 1UV: 7  CO2(ppm): 45  TVOC(ppb): 888
-// 2PM(μg/m3) 1:77  2.5: 77  10: 777
+// 2PM(Î¼g/m3) 1:77  2.5: 77  10: 777
 // 3Bat(V): 8.3
 //
-// Screen 0
+// Screen Layout
 //  01234567890123456789
 // 0T(C): 32.5  H(%): 77
 // 1UV: 7  Pr(hPa): 1024
 // 2Bat(V): 8.3
-// 3
-//
-// Screen 1
-//  01234567890123456789
-// 0CO2(ppm): 45 
-// 1TVOC(ppb): 888
-// 2PM(μg/m3)1/2.5/10
-// 377 / 77 / 777
-
-//**************************************
-// I2C LCD Screen Indicator
-
-#include <LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(0x27, 20, 4);
-int lcd_status = 0; //0 off, 1 on
-
-void setup_LCD_I2C() {
-  #ifdef SERIAL_DEBUG
-    Serial.println("LCD I2C test");
-  #endif
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0,1);
-  lcd.print("Weather Station Init");
-  lcd.display();
-  lcd_status = 1;
-  #ifdef SERIAL_DEBUG
-    Serial.println("LCD I2C ready");
-  #endif
-}
+// 3TVOC(ppb): 888
+// 4CO2(ppm): 45 
+// 5PM(Î¼g/m3)1/2.5/10
+// 612 / 34 / 567
+// 7
 
 
 //**************************************
@@ -55,30 +29,34 @@ void setup_LCD_I2C() {
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-
-#define OLED_FONT_WIDTH 6
+#define OLED_ADDR        0x3C
+#define SCREEN_WIDTH     128 // OLED display width, in pixels
+#define SCREEN_HEIGHT    64 // OLED display height, in pixels. 32 or 64
+#define OLED_FONT_WIDTH  6
 #define OLED_FONT_HEIGHT 8
+#define OLED_RESET       4 // Reset pin # (or -1 if sharing Arduino reset pin)
 
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-int oled_status = 0; //0 off, 1 on
 
 void setup_OLED_I2C() {
   #ifdef SERIAL_DEBUG
-    Serial.println("OLED I2C test");
+    Serial.println("OLED I2C SSD1306 test");
   #endif
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-    Serial.println(F("OLED SSD1306 allocation failed"));
-    oled_status = 0;
-    return;
+  /*uint8_t     *buffer;
+  buffer = (uint8_t *)malloc(SCREEN_WIDTH * ((SCREEN_HEIGHT + 7) / 8));
+  if(buffer) {
+    Serial.println(F("BUFFER SUCCESS"));
+    free(buffer);
   }
-  oled_status = 1;
+  else
+    Serial.println(F("BUFFER FAILED"));*/
+  
+  if(!oled.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) { // Address 0x3C for 128x32
+    Serial.println(F("SSD1306 failed"));
+    while(true);
+  }
 
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
@@ -86,83 +64,37 @@ void setup_OLED_I2C() {
   //delay(2000); // Pause for 2 seconds to show adafruit logo
 
   // Clear the buffer
-  oled.clearDisplay();
+  //oled.clearDisplay();
 
-  oled.setTextSize(1);      // Normal 1:1 pixel scale
+  //oled.setTextSize(1);      // Normal 1:1 pixel scale
   oled.setTextColor(WHITE); // Draw white text
-  oled.setCursor(0 * OLED_FONT_WIDTH, 1 * OLED_FONT_HEIGHT);
+  //screens_print("Weather Station Init", 0, 1);
   //display.cp437(true);         // Use full 256 char 'Code Page 437' font
 
+  /*oled.drawPixel(0, 0, WHITE);
+  oled.drawPixel(127, 0, WHITE);
+  oled.drawPixel(0, 63, WHITE);
+  oled.drawPixel(127, 63, WHITE);
+  oled.drawPixel(63, 31, WHITE);
   oled.println("Weather Station Init");
-  oled.display(); 
+  oled.display(); */
 
   #ifdef SERIAL_DEBUG
     Serial.println("OLED I2C ready");
   #endif
 }
 
+void one_loop_start_OLED_I2C() {
+  oled.clearDisplay();
+}
+
 void one_loop_end_OLED_I2C() {
-  if(oled_status == 1)
-    oled.display();
-}
-
-
-//**************************************
-// All Screens
-
-int screen_page = 0; //0 or 1
-
-void setup_screens() {
-  setup_OLED_I2C();
-  setup_LCD_I2C();
-}
-
-void clear_screens() {
-  if(oled_status == 1)
-    oled.clearDisplay();
-  if(lcd_status == 1)
-    lcd.clear();
-}
-
-void one_loop_start_screens() {
-  int new_screen_page = ((int)(millis() / 1000 / 5)) % 2;
-  if(screen_page != new_screen_page) {
-    screen_page = new_screen_page;
-    clear_screens();
-  }
-  else {
-    //clear only oled
-    if(oled_status == 1)
-      oled.clearDisplay();
-  }
-}
-
-void one_loop_end_screens() {
-  one_loop_end_OLED_I2C();
+  oled.display();
 }
 
 void screens_print(String s, int col, int li) {
-  if(li<4 && screen_page == 0) {
-    if(lcd_status == 1) {
-      lcd.setCursor(col, li);
-      lcd.print(s);
-    }
-    if(oled_status == 1) {
-      oled.setCursor(col * OLED_FONT_WIDTH, li * OLED_FONT_HEIGHT);
-      oled.print(s);
-    }
-    return;
-  }
-  if(li>=4 && screen_page == 1) {
-    if(lcd_status == 1) {
-      lcd.setCursor(col, li - 4);
-      lcd.print(s);
-    }
-    if(oled_status == 1) {
-      oled.setCursor(col * OLED_FONT_WIDTH, (li - 4) * OLED_FONT_HEIGHT);
-      oled.print(s);
-    }
-  }
+  oled.setCursor(col * OLED_FONT_WIDTH, li * OLED_FONT_HEIGHT);
+  oled.print(s);
 }
 
 //**************************************
@@ -171,7 +103,7 @@ void screens_print(String s, int col, int li) {
 
 #include "Adafruit_Si7021.h"
 
-Adafruit_Si7021 sensor = Adafruit_Si7021();
+Adafruit_Si7021 si7021 = Adafruit_Si7021();
 
 void setup_Si7021() {
 
@@ -179,14 +111,14 @@ void setup_Si7021() {
     Serial.println("Si7021 test");
   #endif
   
-  if (!sensor.begin()) {
-    Serial.println("Did not find Si7021 sensor!");
+  if (!si7021.begin()) {
+    Serial.println(F("Si7021 failed"));
     while (true);
   }
 
   #ifdef DEBUG_SERIAL
     Serial.print("Found model ");
-    switch(sensor.getModel()) {
+    switch(si7021.getModel()) {
       case SI_Engineering_Samples:
         Serial.print("SI engineering samples"); break;
       case SI_7013:
@@ -200,9 +132,9 @@ void setup_Si7021() {
         Serial.print("Unknown");
     }
     Serial.print(" Rev(");
-    Serial.print(sensor.getRevision());
+    Serial.print(si7021.getRevision());
     Serial.print(")");
-    Serial.print(" Serial #"); Serial.print(sensor.sernum_a, HEX); Serial.println(sensor.sernum_b, HEX);
+    Serial.print(" Serial #"); Serial.print(si7021.sernum_a, HEX); Serial.println(si7021.sernum_b, HEX);
     Serial.println("Si7021 ready");
   #endif
 }
@@ -210,12 +142,13 @@ void setup_Si7021() {
 void one_loop_Si7021() {
   #ifdef DEBUG_SERIAL
     Serial.print("\tHumidity: ");
-    Serial.print(sensor.readHumidity(), 2);
+    Serial.print(si7021_sensor.readHumidity(), 2);
     Serial.print("\tTemp: ");
-    Serial.print(sensor.readTemperature(), 2);
+    Serial.print(si7021_sensor.readTemperature(), 2);
   #endif
 
-  String sTH = "T(C): " + String(sensor.readTemperature(), 1) + " H(%): " + String(sensor.readHumidity(), 0);
+  String sTH = "";
+  sTH = sTH + F("T(C): ") + String(si7021.readTemperature(), 1) + F(" H(%): ") + String(si7021.readHumidity(), 0);
   screens_print(sTH, 0, 0);
 }
 
@@ -225,7 +158,9 @@ void one_loop_Si7021() {
 
 #include "Adafruit_CCS811.h"
 
-Adafruit_CCS811 ccs;
+#define CCS811_TEMPERATURE_OFFSET  25.0
+
+Adafruit_CCS811 ccs811;
 
 void setup_CCS811() {
   
@@ -233,43 +168,41 @@ void setup_CCS811() {
     Serial.println("CCS811 test");
   #endif
   
-  if(!ccs.begin()){
-    Serial.println("Failed to start sensor! Please check your wiring.");
+  if(!ccs811.begin()){
+    Serial.println(F("CCS811 failed"));
     while(true);
   }
 
   //calibrate temperature sensor
-  while(!ccs.available());
-  float temp = ccs.calculateTemperature();
-  ccs.setTempOffset(temp - 25.0);
+  while(!ccs811.available());
+  //ccs.setTempOffset(ccs.calculateTemperature() - CCS811_TEMPERATURE_OFFSET);
   #ifdef SERIAL_DEBUG
     Serial.println("Found sensor, available now");
   #endif
 }
 
 void one_loop_CCS811() {
-  if(ccs.available()){
-    float temp = ccs.calculateTemperature();
-    if(!ccs.readData()){
+  if(ccs811.available()){
+    if(!ccs811.readData()){
       #ifdef SERIAL_DEBUG
         Serial.print("\tCO2(ppm): ");
-        Serial.print(ccs.geteCO2());
+        Serial.print(ccs811.geteCO2());
         Serial.print("\tTVOC(ppb): ");
-        Serial.print(ccs.getTVOC());
+        Serial.print(ccs811.getTVOC());
       #endif
       //do not show temp, it is very inaccurate
       //Serial.print("ppb\tTemp:");
       //Serial.print(temp);
-      String sCO2 = "";
-      sCO2 = sCO2 + "CO2(ppm): " + ccs.geteCO2();
-      String sTVOC = "";
-      sTVOC = sTVOC + "TVOC(ppb): " + ccs.getTVOC();
+      String sTVOC = F("TVOC(ppb): ");
+      sTVOC = sTVOC + ccs811.getTVOC();
+      String sCO2 = F("CO2(ppm): ");
+      sCO2 = sCO2 + ccs811.geteCO2();
 
+      screens_print(sTVOC, 0, 3);
       screens_print(sCO2, 0, 4);
-      screens_print(sTVOC, 0, 5);
     }
     else{
-      Serial.println("one_loop_CCS811 ERROR!");
+      Serial.println(F("CCS811 loop failed"));
     }
   }
 }
@@ -287,7 +220,7 @@ void setup_VEML6075() {
     Serial.println("VEML6075 test");
   #endif
   if (!uv.begin()) {
-    Serial.println("Failed to communicate with VEML6075 sensor, check wiring?");
+    Serial.println(F("VEML6075 failed"));
     while(true);
   }
   #ifdef SERIAL_DEBUG
@@ -304,8 +237,8 @@ void one_loop_VEML6075() {
     Serial.print(uvi);
   #endif
 
-  String sUV = "";
-  sUV = sUV + "UV: " + uvi;
+  String sUV = F("UV: ");
+  sUV = sUV + uvi;
   screens_print(sUV, 0, 1);
 }
 
@@ -315,18 +248,18 @@ void one_loop_VEML6075() {
 
 #include <SoftwareSerial.h>
 
-const int pms7300SetPin = A1;
-const int WRITE_PIN_33V = 168; //5V is 255, 3.3V is 168
-const int ON_OFF_TIME_IN_SECONDS = 60; //switch on and off switch
+#define PMS_7300_SET_PIN A1
+#define WRITE_PIN_33V 168 //5V is 255, 3.3V is 168
+#define ON_OFF_TIME_IN_SECONDS 60 //switch on and off switch
+
 SoftwareSerial pmsSerial(2, 3);
-bool isPms7300Up = true;
 
 void setup_PMS7003() {
   #ifdef SERIAL_DEBUG
     Serial.println("PMS7003 serial on");
   #endif
-  setFanOnOff();
-  pinMode(pms7300SetPin, OUTPUT);
+  pinMode(PMS_7300_SET_PIN, OUTPUT);
+  setFanOn(true);
   pmsSerial.begin(9600);
 }
 
@@ -345,11 +278,11 @@ void empty_buffer_PMS7003() {
   while (pmsSerial.read()!=-1) {};
 }
 
-void setFanOnOff() {
-  if(isPms7300Up)
-    analogWrite(pms7300SetPin, WRITE_PIN_33V);
+void setFanOn(boolean isOn) {
+  if(isOn)
+    analogWrite(PMS_7300_SET_PIN, WRITE_PIN_33V);
    else
-    analogWrite(pms7300SetPin, 0);  
+    analogWrite(PMS_7300_SET_PIN, 0);  
 }
 
 /*
@@ -392,13 +325,10 @@ void one_loop_PMS7003() {
       Serial.print("\tPM 2.5: "); Serial.print(pms5003data.pm25_env);
       Serial.print("\tPM 10: "); Serial.print(pms5003data.pm100_env);    
     #endif
-    String sTitle = "PM(mug/m3)1/2.5/10";
     String sStats = "";
     sStats = sStats + pms5003data.pm10_env + " / " + pms5003data.pm25_env + " / " + pms5003data.pm100_env;
-    // 2PM(μg/m3)1/2.5/10
-    // 377 / 77 / 777
-    screens_print(sTitle, 0, 6);
-    screens_print(sStats, 0, 7);
+    screens_print(F("PM(mug/m3)1/2.5/10"), 0, 5);
+    screens_print(sStats, 0, 6);
   }
   empty_buffer_PMS7003();
 }
@@ -460,14 +390,14 @@ boolean readPMSdata(Stream *s) {
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
 
-Adafruit_BMP280 bmp;
+Adafruit_BMP280 bmp280;
 
 void setup_BMP280() {
   #ifdef SERIAL_DEBUG
     Serial.println("BMP280 test");
   #endif
-  if (!bmp.begin()) {  
-    Serial.println("Could not find a valid BMP280 sensor, check wiring!");
+  if (!bmp280.begin()) {  
+    Serial.println(F("BMP280 failed"));
     while (true);
   }
   #ifdef SERIAL_DEBUG
@@ -483,8 +413,8 @@ void one_loop_BMP280() {
     Serial.print(bmp.readPressure());
   #endif
 
-  String sPr = "";
-  sPr = sPr + "Pr(hPa): " + String(bmp.readPressure()/100, 0);
+  String sPr = F("Pr(hPa): ");
+  sPr = sPr + String(bmp280.readPressure()/100, 0);
   screens_print(sPr, 7, 1);
 }
 
@@ -515,7 +445,7 @@ void one_loop_MICS4514() {
 //**************************************
 // Battery Indicator
 
-const int BatteryIndicator_pin = A2;      // Analog PIN 6 to read the NO2-sensor
+#define BATTERY_INDICATOR_PIN A2      // Analog PIN 6 to read the NO2-sensor
 
 void setup_BatteryIndicator() {
   #ifdef SERIAL_DEBUG
@@ -524,18 +454,18 @@ void setup_BatteryIndicator() {
 }
 
 void one_loop_BatteryIndicator() {
-  float v = analogRead(BatteryIndicator_pin); //0 to 1023, 1023 mapping to 5V
+  float v = analogRead(BATTERY_INDICATOR_PIN); //0 to 1023, 1023 mapping to 5V
   float vBattery = 2 * 5 * v / 1023; //*2 as we use 2 equal resistors to devide voltage
   #ifdef SERIAL_DEBUG
     Serial.print("\tBattery(V): " + String(vBattery));
   #endif
-  String sBat = "";
-  sBat = sBat + "Bat(V): " + String(vBattery, 1);
+  String sBat = F("Bat(V): ");
+  sBat = sBat + String(vBattery, 1);
   screens_print(sBat, 0, 2);
 }
 
 //**************************************
-// Main Loop
+// I2C Port Scanner
 
 #ifdef SERIAL_DEBUG
 void scanI2C() {
@@ -555,7 +485,29 @@ void scanI2C() {
   } // end of for loop
   Serial.println("i2c scan done.");  
 }
+
+void showVarSizes() {
+  Serial.print("oled:");
+  Serial.println(sizeof(oled));
+  Serial.print("si7021:");
+  Serial.println(sizeof(si7021));
+  Serial.print("ccs811:");
+  Serial.println(sizeof(ccs811));
+  Serial.print("uv:");
+  Serial.println(sizeof(uv));
+  Serial.print("pmsSerial:");
+  Serial.println(sizeof(pmsSerial));
+  Serial.print("pms5003data:");
+  Serial.println(sizeof(pms5003data));
+  Serial.print("bmp280:");
+  Serial.println(sizeof(bmp280));
+}
 #endif
+
+//**************************************
+// Main Loop
+
+#define LOOP_DELAY_MS 1000
 
 void setup() {
   Serial.begin(9600);
@@ -565,8 +517,9 @@ void setup() {
   }
   #ifdef SERIAL_DEBUG
     scanI2C();
+    showVarSizes();
   #endif
-  setup_screens();
+  setup_OLED_I2C();
   setup_BatteryIndicator();
   //setup_MICS4514();
   setup_Si7021();
@@ -574,7 +527,6 @@ void setup() {
   setup_VEML6075();
   setup_BMP280();
   setup_PMS7003();
-  clear_screens();
 }
 
 void loop() {
@@ -583,7 +535,7 @@ void loop() {
     Serial.print(millis());
   #endif
 
-  one_loop_start_screens();
+  one_loop_start_OLED_I2C();
   one_loop_BatteryIndicator();
   //one_loop_MICS4514();
   one_loop_Si7021();
@@ -591,10 +543,10 @@ void loop() {
   one_loop_VEML6075();
   one_loop_BMP280();
   one_loop_PMS7003();
-  one_loop_end_screens();
+  one_loop_end_OLED_I2C();
 
   #ifdef SERIAL_DEBUG
     Serial.println();
   #endif
-  delay(1000);
+  delay(LOOP_DELAY_MS);
 }

@@ -9,4 +9,8 @@ Just having some fun with Arduino to build a small portable weather station.
 |VEML6075|UV index|3.93|
 |PMS7003|PM 1.0, 2.5 and 10.0 (ug/m3)|13.00|
 |CCS811|CO & TVOC (Total Volatile Organic Compounds)|8.70|
-|OLED 128X32|Screen|1.86|
+|SSD1306|OLED Screen 128X32|1.86|
+
+As the code uses a lot of memory, more exactly the SSD1306 OLED in 128x64 via malloc call, buffers of the 2 following libraries have been reduced:
+* Wire.h BUFFER_LENGTH reduced from 32 to 8 bytes
+* twi.h: TWI_BUFFER_LENGTH reduced from 32 to 8 bytes
