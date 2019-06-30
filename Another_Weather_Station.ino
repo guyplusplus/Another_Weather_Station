@@ -179,13 +179,16 @@ void one_loop_CCS811() {
       //do not show temp, it is very inaccurate
       //Serial.print("ppb\tTemp:");
       //Serial.print(temp);
-      String sTVOC = F("TVOC(ppb): ");
-      sTVOC = sTVOC + ccs811.getTVOC();
-      String sCO2 = F("CO2(ppm): ");
-      sCO2 = sCO2 + ccs811.geteCO2();
-
-      screens_print(sTVOC, 0, 3);
-      screens_print(sCO2, 0, 4);
+      {
+        String sTVOC = F("TVOC(ppb): ");
+        sTVOC = sTVOC + ccs811.getTVOC();
+        screens_print(sTVOC, 0, 2);
+      }
+      {
+        String sCO2 = F("CO2(ppm): ");
+        sCO2 = sCO2 + ccs811.geteCO2();
+        screens_print(sCO2, 0, 3);
+      }
     }
     else{
       Serial.println(F("CCS811 loop failed"));
@@ -311,10 +314,10 @@ void one_loop_PMS7003() {
       Serial.print("\tPM 2.5: "); Serial.print(pms5003data.pm25_env);
       Serial.print("\tPM 10: "); Serial.print(pms5003data.pm100_env);    
     #endif
-    String sStats = "";
+    String sStats = F(" ");
     sStats = sStats + pms5003data.pm10_env + " / " + pms5003data.pm25_env + " / " + pms5003data.pm100_env;
-    screens_print(F("PM(mug/m3)1/2.5/10"), 0, 5);
-    screens_print(sStats, 0, 6);
+    screens_print(F("PM(mug/m3) 1/2.5/10"), 0, 4);
+    screens_print(sStats, 0, 5);
   }
   empty_buffer_PMS7003();
 }
@@ -447,7 +450,7 @@ void one_loop_BatteryIndicator() {
   #endif
   String sBat = F("Bat(V): ");
   sBat = sBat + String(vBattery, 1);
-  screens_print(sBat, 0, 2);
+  screens_print(sBat, 0, 6);
 }
 
 //**************************************
