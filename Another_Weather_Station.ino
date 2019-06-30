@@ -1,5 +1,5 @@
 // define DEBUG_SERIAL to enable serial debug
-#define XDEBUG_SERIAL
+#define DEBUG_SERIAL
 
 // Screen Layout
 //
@@ -39,8 +39,8 @@
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup_OLED_I2C() {
-  #ifdef SERIAL_DEBUG
-    Serial.println("OLED I2C SSD1306 test");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("OLED I2C SSD1306 test"));
   #endif
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -65,8 +65,8 @@ void setup_OLED_I2C() {
   oled.println("Weather Station Init");
   oled.display(); */
 
-  #ifdef SERIAL_DEBUG
-    Serial.println("OLED I2C ready");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("OLED I2C ready"));
   #endif
 }
 
@@ -93,8 +93,8 @@ Adafruit_Si7021 si7021 = Adafruit_Si7021();
 
 void setup_Si7021() {
 
-  #ifdef SERIAL_DEBUG
-    Serial.println("Si7021 test");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("Si7021 test"));
   #endif
   
   if (!si7021.begin()) {
@@ -103,34 +103,34 @@ void setup_Si7021() {
   }
 
   #ifdef DEBUG_SERIAL
-    Serial.print("Found model ");
+    Serial.print(F("Found model "));
     switch(si7021.getModel()) {
       case SI_Engineering_Samples:
-        Serial.print("SI engineering samples"); break;
+        Serial.print(F("SI engineering samples")); break;
       case SI_7013:
-        Serial.print("Si7013"); break;
+        Serial.print(F("Si7013")); break;
       case SI_7020:
-        Serial.print("Si7020"); break;
+        Serial.print(F("Si7020")); break;
       case SI_7021:
-        Serial.print("Si7021"); break;
+        Serial.print(F("Si7021")); break;
       case SI_UNKNOWN:
       default:
-        Serial.print("Unknown");
+        Serial.print(F("Unknown"));
     }
-    Serial.print(" Rev(");
+    Serial.print(F(" Rev("));
     Serial.print(si7021.getRevision());
-    Serial.print(")");
-    Serial.print(" Serial #"); Serial.print(si7021.sernum_a, HEX); Serial.println(si7021.sernum_b, HEX);
-    Serial.println("Si7021 ready");
+    Serial.print(F(")"));
+    Serial.print(F(" Serial #")); Serial.print(si7021.sernum_a, HEX); Serial.println(si7021.sernum_b, HEX);
+    Serial.println(F("Si7021 ready"));
   #endif
 }
 
 void one_loop_Si7021() {
   #ifdef DEBUG_SERIAL
-    Serial.print("\tHumidity: ");
-    Serial.print(si7021_sensor.readHumidity(), 2);
-    Serial.print("\tTemp: ");
-    Serial.print(si7021_sensor.readTemperature(), 2);
+    Serial.print(F("\tHumidity: "));
+    Serial.print(si7021.readHumidity(), 2);
+    Serial.print(F("\tTemp: "));
+    Serial.print(si7021.readTemperature(), 2);
   #endif
 
   String sTH = "";
@@ -150,8 +150,8 @@ Adafruit_CCS811 ccs811;
 
 void setup_CCS811() {
   
-  #ifdef SERIAL_DEBUG
-    Serial.println("CCS811 test");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("CCS811 test"));
   #endif
   
   if(!ccs811.begin()){
@@ -162,23 +162,24 @@ void setup_CCS811() {
   //calibrate temperature sensor
   while(!ccs811.available());
   //ccs.setTempOffset(ccs.calculateTemperature() - CCS811_TEMPERATURE_OFFSET);
-  #ifdef SERIAL_DEBUG
-    Serial.println("Found sensor, available now");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("Found sensor, available now"));
   #endif
 }
 
 void one_loop_CCS811() {
   if(ccs811.available()){
     if(!ccs811.readData()){
-      #ifdef SERIAL_DEBUG
-        Serial.print("\tCO2(ppm): ");
+      #ifdef DEBUG_SERIAL
+        Serial.print(F("\tCO2(ppm): "));
         Serial.print(ccs811.geteCO2());
-        Serial.print("\tTVOC(ppb): ");
+        Serial.print(F("\tTVOC(ppb): "));
         Serial.print(ccs811.getTVOC());
       #endif
       //do not show temp, it is very inaccurate
-      //Serial.print("ppb\tTemp:");
+      //Serial.print(F("ppb\tTemp:"));
       //Serial.print(temp);
+      //create 2 blocks to save on mem for string allocation
       {
         String sTVOC = F("TVOC(ppb): ");
         sTVOC = sTVOC + ccs811.getTVOC();
@@ -205,15 +206,15 @@ void one_loop_CCS811() {
 Adafruit_VEML6075 uv = Adafruit_VEML6075();
 
 void setup_VEML6075() {
-  #ifdef SERIAL_DEBUG
-    Serial.println("VEML6075 test");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("VEML6075 test"));
   #endif
   if (!uv.begin()) {
     Serial.println(F("VEML6075 failed"));
     while(true);
   }
-  #ifdef SERIAL_DEBUG
-    Serial.println("Found VEML6075 sensor");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("Found VEML6075 sensor"));
   #endif
 }
 
@@ -221,8 +222,8 @@ void one_loop_VEML6075() {
   int uvi = uv.readUVI();
   if(uvi < 0)
     uvi = 0;
-  #ifdef SERIAL_DEBUG
-    Serial.print("\tUVIndex: ");
+  #ifdef DEBUG_SERIAL
+    Serial.print(F("\tUVIndex: "));
     Serial.print(uvi);
   #endif
 
@@ -244,8 +245,8 @@ void one_loop_VEML6075() {
 SoftwareSerial pmsSerial(2, 3);
 
 void setup_PMS7003() {
-  #ifdef SERIAL_DEBUG
-    Serial.println("PMS7003 serial on");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("PMS7003 serial on"));
   #endif
   pinMode(PMS_7300_SET_PIN, OUTPUT);
   setFanOn(true);
@@ -290,29 +291,29 @@ void one_loop_PMS7003() {
     // reading data was successful!
     /*
     Serial.println();
-    Serial.println("---------------------------------------");
-    Serial.println("Concentration Units (standard)");
-    Serial.print("PM 1.0: "); Serial.print(pms5003data.pm10_standard);
-    Serial.print("\t\tPM 2.5: "); Serial.print(pms5003data.pm25_standard);
-    Serial.print("\t\tPM 10: "); Serial.println(pms5003data.pm100_standard);
-    Serial.println("---------------------------------------");
-    Serial.println("Concentration Units (environmental)");
-    Serial.print("PM 1.0: "); Serial.print(pms5003data.pm10_env);
-    Serial.print("\t\tPM 2.5: "); Serial.print(pms5003data.pm25_env);
-    Serial.print("\t\tPM 10: "); Serial.println(pms5003data.pm100_env);
-    Serial.println("---------------------------------------");
-    Serial.print("Particles > 0.3um / 0.1L air:"); Serial.println(pms5003data.particles_03um);
-    Serial.print("Particles > 0.5um / 0.1L air:"); Serial.println(pms5003data.particles_05um);
-    Serial.print("Particles > 1.0um / 0.1L air:"); Serial.println(pms5003data.particles_10um);
-    Serial.print("Particles > 2.5um / 0.1L air:"); Serial.println(pms5003data.particles_25um);
-    Serial.print("Particles > 5.0um / 0.1L air:"); Serial.println(pms5003data.particles_50um);
-    Serial.print("Particles > 10.0 um / 0.1L air:"); Serial.println(pms5003data.particles_100um);
-    Serial.println("---------------------------------------");
+    Serial.println(F("---------------------------------------"));
+    Serial.println(F("Concentration Units (standard)"));
+    Serial.print(F("PM 1.0: ")); Serial.print(pms5003data.pm10_standard);
+    Serial.print(F("\t\tPM 2.5: ")); Serial.print(pms5003data.pm25_standard);
+    Serial.print(F("\t\tPM 10: ")); Serial.println(pms5003data.pm100_standard);
+    Serial.println(F("---------------------------------------"));
+    Serial.println(F("Concentration Units (environmental)"));
+    Serial.print(F("PM 1.0: ")); Serial.print(pms5003data.pm10_env);
+    Serial.print(F("\t\tPM 2.5: ")); Serial.print(pms5003data.pm25_env);
+    Serial.print(F("\t\tPM 10: ")); Serial.println(pms5003data.pm100_env);
+    Serial.println(F("---------------------------------------"));
+    Serial.print(F("Particles > 0.3um / 0.1L air:")); Serial.println(pms5003data.particles_03um);
+    Serial.print(F("Particles > 0.5um / 0.1L air:")); Serial.println(pms5003data.particles_05um);
+    Serial.print(F("Particles > 1.0um / 0.1L air:")); Serial.println(pms5003data.particles_10um);
+    Serial.print(F("Particles > 2.5um / 0.1L air:")); Serial.println(pms5003data.particles_25um);
+    Serial.print(F("Particles > 5.0um / 0.1L air:")); Serial.println(pms5003data.particles_50um);
+    Serial.print(F("Particles > 10.0 um / 0.1L air:")); Serial.println(pms5003data.particles_100um);
+    Serial.println(F("---------------------------------------"));
     */
-    #ifdef SERIAL_DEBUG
-      Serial.print("\tPM 1.0: "); Serial.print(pms5003data.pm10_env);
-      Serial.print("\tPM 2.5: "); Serial.print(pms5003data.pm25_env);
-      Serial.print("\tPM 10: "); Serial.print(pms5003data.pm100_env);    
+    #ifdef DEBUG_SERIAL
+      Serial.print(F("\tPM 1.0: ")); Serial.print(pms5003data.pm10_env);
+      Serial.print(F("\tPM 2.5: ")); Serial.print(pms5003data.pm25_env);
+      Serial.print(F("\tPM 10: ")); Serial.print(pms5003data.pm100_env);    
     #endif
     String sStats = F(" ");
     sStats = sStats + pms5003data.pm10_env + " / " + pms5003data.pm25_env + " / " + pms5003data.pm100_env;
@@ -349,7 +350,9 @@ boolean readPMSdata(Stream *s) {
  
   /* debugging
   for (uint8_t i=2; i<32; i++) {
-    Serial.print("0x"); Serial.print(buffer[i], HEX); Serial.print(", ");
+    Serial.print(F("0x"));
+    Serial.print(buffer[i], HEX);
+    Serial.print(F(", "));
   }
   Serial.println();
   */
@@ -365,7 +368,7 @@ boolean readPMSdata(Stream *s) {
   memcpy((void *)&pms5003data, (void *)buffer_u16, 30);
  
   if (sum != pms5003data.checksum) {
-    //Serial.println("Checksum failure");
+    //Serial.println(F("Checksum failure"));
     return false;
   }
   // success!
@@ -382,24 +385,25 @@ boolean readPMSdata(Stream *s) {
 Adafruit_BMP280 bmp280;
 
 void setup_BMP280() {
-  #ifdef SERIAL_DEBUG
-    Serial.println("BMP280 test");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("BMP280 test"));
   #endif
   if (!bmp280.begin()) {  
     Serial.println(F("BMP280 failed"));
     while (true);
   }
-  #ifdef SERIAL_DEBUG
-    Serial.println("Found BMP280 sensor");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("Found BMP280 sensor"));
   #endif
 }
 
 void one_loop_BMP280() {
-  #ifdef SERIAL_DEBUG
-    Serial.print("\tTemp: ");
-    Serial.print(bmp.readTemperature());
-    Serial.print("\tPressure(Pa): ");
-    Serial.print(bmp.readPressure());
+  #ifdef DEBUG_SERIAL
+    Serial.print(F("\t[Temp: "));
+    Serial.print(bmp280.readTemperature());
+    Serial.print(F("]"));
+    Serial.print(F("\tPressure(hPa): "));
+    Serial.print(bmp280.readPressure()/100);
   #endif
 
   String sPr = F("Pr(hPa): ");
@@ -415,7 +419,7 @@ void one_loop_BMP280() {
 const int NO2_pin = A0;      // Analog PIN 6 to read the NO2-sensor
 
 void setup_MICS4514() {
-  Serial.println("MICS4514 setup (nothing to do)");
+  Serial.println(F("MICS4514 setup (nothing to do)"));
 }
 
 void one_loop_MICS4514() {
@@ -437,15 +441,15 @@ void one_loop_MICS4514() {
 #define BATTERY_INDICATOR_PIN A2      // Analog PIN 6 to read the NO2-sensor
 
 void setup_BatteryIndicator() {
-  #ifdef SERIAL_DEBUG
-    Serial.println("BatteryIndicator setup (nothing to do)");
+  #ifdef DEBUG_SERIAL
+    Serial.println(F("BatteryIndicator setup (nothing to do)"));
   #endif
 }
 
 void one_loop_BatteryIndicator() {
   float v = analogRead(BATTERY_INDICATOR_PIN); //0 to 1023, 1023 mapping to 5V
   float vBattery = 2 * 5 * v / 1023; //*2 as we use 2 equal resistors to devide voltage
-  #ifdef SERIAL_DEBUG
+  #ifdef DEBUG_SERIAL
     Serial.print("\tBattery(V): " + String(vBattery));
   #endif
   String sBat = F("Bat(V): ");
@@ -456,41 +460,25 @@ void one_loop_BatteryIndicator() {
 //**************************************
 // I2C Port Scanner
 
-#ifdef SERIAL_DEBUG
+#ifdef DEBUG_SERIAL
 void scanI2C() {
-  Serial.println("i2c scan starting");  
+  Serial.println(F("i2c scan starting"));  
   Wire.begin();
   for (byte i = 8; i < 120; i++)
   {
     Wire.beginTransmission (i);
     if (Wire.endTransmission () == 0) {
-      Serial.print("Found i2c address: ");
+      Serial.print(F("Found i2c address: "));
       Serial.print(i, DEC);
-      Serial.print(" (0x");
+      Serial.print(F(" (0x"));
       Serial.print(i, HEX);
       Serial.println (")");
       delay (1);  // maybe unneeded?
     } // end of good response
   } // end of for loop
-  Serial.println("i2c scan done.");  
+  Serial.println(F("i2c scan done."));  
 }
 
-void showVarSizes() {
-  Serial.print("oled:");
-  Serial.println(sizeof(oled));
-  Serial.print("si7021:");
-  Serial.println(sizeof(si7021));
-  Serial.print("ccs811:");
-  Serial.println(sizeof(ccs811));
-  Serial.print("uv:");
-  Serial.println(sizeof(uv));
-  Serial.print("pmsSerial:");
-  Serial.println(sizeof(pmsSerial));
-  Serial.print("pms5003data:");
-  Serial.println(sizeof(pms5003data));
-  Serial.print("bmp280:");
-  Serial.println(sizeof(bmp280));
-}
 #endif
 
 //**************************************
@@ -504,9 +492,8 @@ void setup() {
   while (!Serial) {
     delay(10);
   }
-  #ifdef SERIAL_DEBUG
+  #ifdef DEBUG_SERIAL
     scanI2C();
-    showVarSizes();
   #endif
   setup_OLED_I2C();
   setup_BatteryIndicator();
@@ -519,8 +506,8 @@ void setup() {
 }
 
 void loop() {
-  #ifdef SERIAL_DEBUG
-    Serial.print("Time: ");
+  #ifdef DEBUG_SERIAL
+    Serial.print(F("Time: "));
     Serial.print(millis());
   #endif
 
@@ -534,7 +521,7 @@ void loop() {
   one_loop_PMS7003();
   one_loop_end_OLED_I2C();
 
-  #ifdef SERIAL_DEBUG
+  #ifdef DEBUG_SERIAL
     Serial.println();
   #endif
   delay(LOOP_DELAY_MS);
