@@ -18,3 +18,5 @@ As the code uses a lot of memory, more exactly the SSD1306 OLED in 128x64 via ma
 * twi.h: TWI_BUFFER_LENGTH reduced from 32 to 8 bytes
 
 ![Circuit Picture](CircuitPicture.png)
+
+![OLED Picture](oled.png)
