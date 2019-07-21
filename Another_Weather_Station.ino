@@ -1,5 +1,5 @@
 // define DEBUG_SERIAL to enable serial debug
-#define DEBUG_SERIAL
+#define X_DEBUG_SERIAL
 
 // Screen Layout
 //
